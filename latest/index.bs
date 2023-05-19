@@ -209,7 +209,7 @@ OME-NGFF tables are compatible with the [AnnData model](https://github.com/scver
             |                     # `.zattrs` MUST contain "region_key" if "region" is an array. "region_key" is the key in `obs` denoting which region a given row corresponds to.
             |                     # `.zattrs` MAY contain "instance_key", which is the key in `obs` that denotes which instance in "region" the row corresponds to. If "instance_key" is not provided, the values from the `obs` `.zattrs` "_index" key is used.
             │
-            ├── X                 # You MAY add an zarr array `X`.
+            ├── X                 # You MAY add a zarr array `X`.
             │   │                 # `X` MUST not be a complex type (i.e., MUST be a single type)
             │   │                 # `X` MAY be chunked as the user desires.
             │   ├── .zarray
@@ -283,7 +283,7 @@ OME-NGFF tables are compatible with the [AnnData model](https://github.com/scver
             |          |
             |          └─ 0
             |
-            ├── obsm              # You MAY add a obsm group comtainer. The obsm group contains arrays that annotate the rows in X.
+            ├── obsm              # You MAY add a obsm group container. The obsm group contains arrays that annotate the rows in X.
             |   │                 # The rows in each array MUST be index-matched to the rows in X (if present). 
             |   |
             │   ├── .zgroup
@@ -301,7 +301,7 @@ OME-NGFF tables are compatible with the [AnnData model](https://github.com/scver
             │       │   ...
             │       └── n.m
             |
-            ├── varm              # You MAY add a varm group comtainer. The varm group contains arrays that annotate the columns in X.
+            ├── varm              # You MAY add a varm group container. The varm group contains arrays that annotate the columns in X.
             |   │                 # The rows in each array MUST be index-matched to the columns in X (if present). 
             |   |
             │   ├── .zgroup
@@ -318,7 +318,7 @@ OME-NGFF tables are compatible with the [AnnData model](https://github.com/scver
             │       │   ...
             │       └── n.m
             |
-            ├── obsp              # You MAY add a obsp group comtainer. The obsp group contains sparse arrays that annotate the rows in X.
+            ├── obsp              # You MAY add a obsp group container. The obsp group contains sparse arrays that annotate the rows in X.
             |   │                 # The rows in each array MUST be index-matched to the columns in X (if present). 
             |   |
             │   ├── .zgroup
@@ -360,7 +360,7 @@ OME-NGFF tables are compatible with the [AnnData model](https://github.com/scver
             │           |   ...
             │           └── n
             |
-            ├── varp              # You MAY add a varp group comtainer. The varp group contains sparse arrays that annotate the columns in X.
+            ├── varp              # You MAY add a varp group container. The varp group contains sparse arrays that annotate the columns in X.
             |   │                 # The rows in each array MUST be index-matched to the columns in X (if present). 
             |   |
             │   ├── .zgroup
@@ -402,7 +402,7 @@ OME-NGFF tables are compatible with the [AnnData model](https://github.com/scver
             │           |   ...
             │           └── n
             |
-            └── uns               # You MAY add a uns containter to store unstructured data.
+            └── uns               # You MAY add an uns container to store unstructured data.
                 |
                 ├── .zgroup
                 |
@@ -433,7 +433,7 @@ OME-NGFF tables are compatible with the [AnnData model](https://github.com/scver
                 |       │
                 |       └─ 0
                 |
-                ├── dense_array       # You MAY dense arrays as n n-dimensional zarr arrays.
+                ├── dense_array       # You MAY add dense arrays as n n-dimensional zarr arrays.
                 |   │                 # `dense_array` MUST not be a complex type (i.e., MUST be a single type)
                 |   │                 # `dense_array` MAY be chunked as the user desires.
                 |   |                 # `dense array` MAY be in the `uns` group or in a subgroup.
