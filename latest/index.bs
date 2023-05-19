@@ -240,8 +240,8 @@ OME-NGFF tables are compatible with the [AnnData model](https://github.com/scver
             │   │                 # `.zattrs` MUST contain `"encoding-type"`, which is set to `"dataframe"` by AnnData.
             │   │                 # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.2.0"` by AnnData.
             │   │      
-            │   └── col_0         # Each column in the obs table is a 1D zarr array. The rows can be chunked as the user desires.
-            │       ├── .zarray   # However, the obs columns SHOULD be chunked in the same way as the rows in X (if present).
+            │   └── col_0         # Each column in the obs table is a 1D zarr array. The columns can be chunked as the user desires.
+            │       ├── .zarray   # However, the obs columns SHOULD be chunked in the same way as the rows of X (if present).
             │       │
             │       └── 0
             ├── var               # You MAY add a var group container. The var group holds a table of annotations on the columns in X.
@@ -252,8 +252,8 @@ OME-NGFF tables are compatible with the [AnnData model](https://github.com/scver
             |   │                 # `.zattrs` MUST contain `"encoding-type"`, which is set to `"dataframe"` by AnnData.
             |   │                 # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.2.0"` by AnnData.
             |   │
-            |   ├── array_col     # Columns in the var table MAY be a 1D zarr array. The rows can be chunked as the user desires.
-            |   |   ├── .zarray   # However, the var columns SHOULD be chunked in the same way as the columns in X.
+            |   ├── array_col     # Columns in the var table MAY be a 1D zarr array. The columns can be chunked as the user desires.
+            |   |   ├── .zarray   # However, the var columns SHOULD be chunked in the same way as the columns of X (if present).
             |   |   │
             |   |   └── 0
             |   |
@@ -262,12 +262,12 @@ OME-NGFF tables are compatible with the [AnnData model](https://github.com/scver
             |   |   |             # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.2.0"` by AnnData.
             |   |   |
             |   |   ├── categories
-            |   |   |   ├── .zarray  # categories MUST be a 1D zarr array. The rows can be chunked as the user desires.
+            |   |   |   ├── .zarray  # categories MUST be a 1D zarr array, which can be chunked as the user desires.
             |   |   |   |
             |   |   |   └── 0
             |   |   └── codes
-            |   |       ├── .zarray  # codes MUST be a 1D zarr array. The rows can be chunked as the user desires.
-            |   |       |
+            |   |       ├── .zarray  # codes MUST be a 1D zarr array, which can be chunked as the user desires.
+            |   |       |            # However, the codes SHOULD be chunked in the same way as the columns of X (if present).
             |   |       └── 0
             |   |    
             |   └── null_col      # Columns in the var table MAY nullable integer
@@ -275,12 +275,12 @@ OME-NGFF tables are compatible with the [AnnData model](https://github.com/scver
             |       │             # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.1.0"` by AnnData.
             |       │
             |       ├── mask
-            |       │   ├── .zarray  # categories MUST be a 1D zarr array. The rows can be chunked as the user desires.
-            |       │   │
+            |       │   ├── .zarray  # categories MUST be a 1D zarr array, which can be chunked as the user desires.
+            |       │   │            # However, the mask SHOULD be chunked in the same way as the columns of X (if present).
             |       │   └── 0
             |       └── values
             |           ├── .zarray  # codes MUST be a 1D zarr array. The rows can be chunked as the user desires.
-            |           │
+            |           │            # However, the values SHOULD be chunked in the same way as the columns of X (if present).
             |           └── 0
             |
             ├── obsm              # You MAY add a obsm group container. The obsm group contains arrays that annotate the rows in X.
@@ -345,7 +345,7 @@ OME-NGFF tables are compatible with the [AnnData model](https://github.com/scver
             │       |   └── n
             |       |
             |       ├── indices   # You MUST add a one-dimensional zarr array named "indices".
-            |       |   |         # `indices` MAY be chunked as the user desires.
+            |       |   |         # `indices` MAY be chunked as the user desires but SHOULD be chunked the same as `data`.
             |       |   ├── .zarray  # `indices` MUST be an `int` dtype.
             |       |   |
             |       |   ├── 0
@@ -387,7 +387,7 @@ OME-NGFF tables are compatible with the [AnnData model](https://github.com/scver
             │       |   └── n
             |       |
             |       ├── indices   # You MUST add a one-dimensional zarr array named "indices".
-            |       |   |         # `indices` MAY be chunked as the user desires.
+            |       |   |         # `indices` MAY be chunked as the user desires but SHOULD be chunked the same as `data`.
             |       |   ├── .zarray  # `indices` MUST be an `int` dtype.
             |       |   |
             |       |   ├── 0
@@ -428,8 +428,8 @@ OME-NGFF tables are compatible with the [AnnData model](https://github.com/scver
                 |   │                 # `.zattrs` MUST contain `"encoding-type"`, which is set to `"dataframe"` by AnnData.
                 |   │                 # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.2.0"` by AnnData.
                 |   │      
-                |   └── col_0         # Each column in the obs table is a 1D zarr array.
-                |       ├── .zarray   # Each columns MUST be chunked the same, but the chunking may be chosen by the user.
+                |   └── col_0         # Each column in the table is a 1D zarr array.
+                |       ├── .zarray   # Each column MUST be chunked the same, but the chunking may be chosen by the user.
                 |       │
                 |       └── 0
                 |
@@ -461,7 +461,7 @@ OME-NGFF tables are compatible with the [AnnData model](https://github.com/scver
                     |   └── n
                     |
                     ├── indices      # You MUST add a one-dimensional zarr array named "indices".
-                    |   |            # `indices` MAY be chunked as the user desires.
+                    |   |            # `indices` MAY be chunked as the user desires but SHOULD be chunked the same as `data`.
                     |   ├── .zarray  # `indices` MUST be an `int` dtype.
                     |   |
                     |   ├── 0
