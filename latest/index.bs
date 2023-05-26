@@ -196,8 +196,8 @@ The following describes the expected layout for tabular data.
             ├── .zgroup           # The table group MAY be in root or in another group.
             |
             ├── .zattrs           # `.zattrs` MUST contain "type", which is set to `"ngff:table"`
-            |                     # `.zattrs` MUST contain "annotated_data", which is the path to the data the table is annotating.
-            |                     # "annotated_data" MUST be a single path (single piece of data) or an array of paths (multiple data), which MUST be strings.
+            |                     # `.zattrs` MAY contain "annotated_data", which is the path to the data the table is annotating.
+            |                     # If present, "annotated_data" MUST be a single path (single piece of data) or an array of paths (multiple data), which MUST be strings.
             |
             └── table_data        # The table group MUST contain a zarr array `table_data`.
             |   |                 # `table_data` MUST not be a complex type (i.e., MUST be a single type)
@@ -207,15 +207,15 @@ The following describes the expected layout for tabular data.
             |   |   ...
             |   └── n.m
             |
-            └── axis_annotation_0 # The table MAY contain one ore more `axis_annotation_#` group containers.
+            └── axis_annotation_0 # The table MAY contain one ore more `axis_annotation_N` group containers.
                 |                 # These groups hold datasets and groups that represent annotations on one dimension of `table_data`.
-                |                 # The columns of all annotations in `axis_annotation_#` MUST be index-matched to the corresponding dimension of `table_data`.
-                |                 # The columns of all annotations in `axis_annotation_#` SHOULD be chunked in the same way as the corresponding dimension of `table_data`.
+                |                 # The columns of all annotations in `axis_annotation_N` MUST be index-matched to the corresponding dimension of `table_data`.
+                |                 # The columns of all annotations in `axis_annotation_N` SHOULD be chunked in the same way as the corresponding dimension of `table_data`.
                 |
                 ├── .zattrs       # `.zattrs` MUST contain `"axis"`, which is the name of the axis in `table_data` the group is annotating.
                 |                 # `.zattrs` MUST contain `"column-order"`, which is a list of the order of the annotations.
                 |
-                ├── dense_ann     # Annotations in the `axis_annotation_#` group MAY be a 1D or 2D zarr array. The rows can be chunked as the user desires.
+                ├── dense_ann     # Annotations in the `axis_annotation_N` group MAY be a 1D or 2D zarr array. The rows can be chunked as the user desires.
                 |   ├── .zarray
                 |   ├── .zattrs   # If the array is 2D, `.zattrs` MAY contain a list of strings `"column_names"` that contains the headers of the columns of the array.
                 |   |
@@ -223,7 +223,7 @@ The following describes the expected layout for tabular data.
                 |   |   ...
                 |   └── n.m
                 |
-                ├── cat_ann       # Annotations in the `axis_annotation_#` group MAY be categorical.
+                ├── cat_ann       # Annotations in the `axis_annotation_N` group MAY be categorical.
                 |   ├── .zattrs.  # `.zattrs` MUST contain `"encoding-type"`, which is set to `"categorical"`.
                 |   |
                 |   ├── categories
@@ -239,7 +239,7 @@ The following describes the expected layout for tabular data.
                 |       |   ...
                 |       └── n
                 |
-                ├── null_ann      # Annotations in the `axis_annotation_#` group MAY be nullable integers.
+                ├── null_ann      # Annotations in the `axis_annotation_N` group MAY be nullable integers.
                 |   ├── .zattrs.  # `.zattrs` MUST contain `"encoding-type"`, which is set to `"nullable-integer"`.
                 |   |
                 |   ├── values
@@ -255,12 +255,14 @@ The following describes the expected layout for tabular data.
                 |       |   ...
                 |       └── n
                 |
-                └── sparse_ann    # Annotations in the `axis_annotation_#` group MAY be sparse arrays.
+                └── sparse_ann    # Annotations in the `axis_annotation_N` group MAY be sparse arrays.
                     |
                     ├── .zgroup
                     |
                     ├── .zattrs   # `.zattrs` MUST contain `"encoding-type"`, which is set to `"csr_matrix"` or `"csc_matrix"` for compressed sparse row and compressed sparse column, respectively.
                     |             # `.zattrs` MUST contain `"shape"` which is an array giving the shape of the densified array.
+                    |             # `.zattrs` MAY contain a list of strings `"column_names"` that contains the headers of the columns of the array.
+                    |
                     |
                     ├── data      # The sparse group MUST contain a one-dimensional zarr array `data`.
                     |   |         # `data` MAY be chunked as the user desires.
