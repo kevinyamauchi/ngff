@@ -177,12 +177,42 @@ For this example we assume an image with 5 dimensions and axes called `t,c,z,y,x
 
 Tables {#table-layout}
 ----------------------
-The following describes the expected layout for tabular data.
+The following describes the expected layout for tabular data. Tabular data is
+usually used to annotate axes of existing datasets (e.g., a list of names of
+the corresponding hyperslices, acquisition parameters, results from downstream
+analysis). In case the table is annotating existing data, this data MUST be
+specified by the following metadata:
 
+```json
+"annotated-data": [               # Array containing all dataset / axis pairs this table is annotating
+    {
+        "path": "/path/to/datasetA",
+        "axis": "x",
+    },
+    {
+        "path": "/path/to/datasetA",
+        "axis": "y",
+    },
+    {
+        "path": "/path/to/datasetB",
+        "axis": "t",
+    }
+],
+```
+
+A dataset MAY backlink to annotations for its axes by having the following metadata in its `.zattrs`:
+
+```json
+"annotations": {                  # Group containing at most one annotation path for each axis
+    "t": "/path/to/t-annotation",
+    "y": "/path/to/y-annotation"
+},
+```
+
+The on-disk format of a table group looks like this:
 
 <pre>
-    .                             # Root folder, potentially in S3,
-    |                             # with a flat list of images.
+    .                        # Root folder, potentially in S3.
     |
     └── 123.zarr
         |
@@ -190,103 +220,31 @@ The following describes the expected layout for tabular data.
         |
         ├── .zattrs
         |
-        └── my_table              # A table group is a container which holds all files associated with one table
+        └── table            # A table group is a container which holds datasets of shape [N] or [N,M], where M is arbitrary and N MUST be the same across all datasets.
             |
-            |                     # The table group MAY be in the root of the zarr file.
-            ├── .zgroup           # The table group MAY be in root or in another group.
+            ├── .zgroup      # The table group MAY be in the root of the zarr file or in another group.
             |
-            ├── .zattrs           # `.zattrs` MUST contain "type", which is set to `"ngff:table"`
-            |                     # `.zattrs` MAY contain "annotated_data", which is the path to the data the table is annotating.
-            |                     # If present, "annotated_data" MUST be a single path (single piece of data) or an array of paths (multiple data), which MUST be strings.
+            ├── .zattrs      # `.zattrs` MUST contain "type", which is set to `"ngff:table"`
+            |                # `.zattrs` MUST contain "column-order", which is a list of the order of the annotations.
+            |                # `.zattrs` MUST contain "annotated-data", which is specified above.
             |
-            └── table_data        # The table group MUST contain a zarr array `table_data`.
-            |   |                 # `table_data` MUST not be a complex type (i.e., MUST be a single type)
-            |   |                 # `table_data` MAY be chunked as the user desires.
-            |   ├── .zarray
+            ├── annotation_1 # The group can hold an arbitrary number of datasets subject to the above restrictions.
+            |   |
+            |   ├── .zarray  # If `annotated-data` is not empty, the dimension N MUST correspond to the dimensions of all axes the table is annotating.
+            |   ├── .zattrs  # If `annotated-data` contains exactly one entry, the dimension N of all datasets in the table group
+            |   |            #     SHOULD be chunked in the same way as the corresponding dimension the table is annotating.
             |   ├── 0.0
             |   |   ...
             |   └── n.m
             |
-            └── axis_annotation_0 # The table MAY contain one ore more `axis_annotation_N` group containers.
-                |                 # These groups hold datasets and groups that represent annotations on one dimension of `table_data`.
-                |                 # The columns of all annotations in `axis_annotation_N` MUST be index-matched to the corresponding dimension of `table_data`.
-                |                 # The columns of all annotations in `axis_annotation_N` SHOULD be chunked in the same way as the corresponding dimension of `table_data`.
+            └── _index       # The talbe group SHOULD contain a 1D dataset of strings called `_index` (the names of annotated hyperslices).
                 |
-                ├── .zattrs       # `.zattrs` MUST contain `"axis"`, which is the name of the axis in `table_data` the group is annotating.
-                |                 # `.zattrs` MUST contain `"column-order"`, which is a list of the order of the annotations.
+                ├── .zarray
+                ├── .zattrs
                 |
-                ├── dense_ann     # Annotations in the `axis_annotation_N` group MAY be a 1D or 2D zarr array. The rows can be chunked as the user desires.
-                |   ├── .zarray
-                |   ├── .zattrs   # If the array is 2D, `.zattrs` MAY contain a list of strings `"column_names"` that contains the headers of the columns of the array.
-                |   |
-                |   ├── 0.0
-                |   |   ...
-                |   └── n.m
-                |
-                ├── cat_ann       # Annotations in the `axis_annotation_N` group MAY be categorical.
-                |   ├── .zattrs.  # `.zattrs` MUST contain `"encoding-type"`, which is set to `"categorical"`.
-                |   |
-                |   ├── categories
-                |   |   ├── .zarray   # `categories` MUST be a 1D zarr array of strings.
-                |   |   |
-                |   |   ├── 0
-                |   |   |   ...
-                |   |   └── n
-                |   └── codes
-                |       ├── .zarray   # `codes` MUST be a 1D zarr array of 0-based indices into the `categories` array.
-                |       |
-                |       ├── 0
-                |       |   ...
-                |       └── n
-                |
-                ├── null_ann      # Annotations in the `axis_annotation_N` group MAY be nullable integers.
-                |   ├── .zattrs.  # `.zattrs` MUST contain `"encoding-type"`, which is set to `"nullable-integer"`.
-                |   |
-                |   ├── values
-                |   |   ├── .zarray   # `values` MUST be a 1D zarr array of integers.
-                |   |   |
-                |   |   ├── 0
-                |   |   |   ...
-                |   |   └── n
-                |   └── mask
-                |       ├── .zarray   # `mask` MUST be a 1D boolean zarr array of the same size as `values`.
-                |       |
-                |       ├── 0
-                |       |   ...
-                |       └── n
-                |
-                └── sparse_ann    # Annotations in the `axis_annotation_N` group MAY be sparse arrays.
-                    |
-                    ├── .zgroup
-                    |
-                    ├── .zattrs   # `.zattrs` MUST contain `"encoding-type"`, which is set to `"csr_matrix"` or `"csc_matrix"` for compressed sparse row and compressed sparse column, respectively.
-                    |             # `.zattrs` MUST contain `"shape"` which is an array giving the shape of the densified array.
-                    |             # `.zattrs` MAY contain a list of strings `"column_names"` that contains the headers of the columns of the array.
-                    |
-                    |
-                    ├── data      # The sparse group MUST contain a one-dimensional zarr array `data`.
-                    |   |         # `data` MAY be chunked as the user desires.
-                    |   ├── .zarray
-                    |   |
-                    |   ├── 0
-                    |   |   ...
-                    |   └── n
-                    |
-                    ├── indices   # The sparse group MUST contain a one-dimensional zarr array `indices`.
-                    |   |         # `indices` MAY be chunked as the user desires but SHOULD be chunked in the same way as `data`.
-                    |   ├── .zarray   # `indices` MUST be an `int` dtype.
-                    |   |
-                    |   ├── 0
-                    |   |   ...
-                    |   └── n
-                    |
-                    └── indptr    # The sparse group MUST contain a one-dimensional zarr array `indptr`.
-                        |         # `indptr` MAY be chunked as the user desires but SHOULD be chunked in the same way as `data`.
-                        ├── .zarray   # `indptr` MUST be an `int` dtype.
-                        |
-                        ├── 0
-                        |   ...
-                        └── n
+                ├── 0
+                |   .
+                └── n
 </pre>
 
 High-content screening {#hcs-layout}
