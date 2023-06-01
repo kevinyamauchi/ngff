@@ -178,35 +178,26 @@ For this example we assume an image with 5 dimensions and axes called `t,c,z,y,x
 Tables {#table-layout}
 ----------------------
 The following describes the expected layout for tabular data. Tabular data is
-usually used to annotate axes of existing datasets (e.g., a list of names of
+usually used to annotate axes of existing arrays (e.g., a list of names of
 the corresponding hyperslices, acquisition parameters, results from downstream
 analysis). In case the table is annotating existing data, this data MUST be
 specified by the following metadata:
 
 ```json
-"annotated-data": [               # Array containing all dataset / axis pairs this table is annotating
+"annotated-data": [               # Array containing all array / axis pairs this table is annotating
     {
-        "path": "/path/to/datasetA",
-        "axis": "x",
+        "array": "/path/to/arrayA",
+        "dimension": 1,
     },
     {
-        "path": "/path/to/datasetA",
-        "axis": "y",
+        "array": "/path/to/arrayA",
+        "dimension": 2,
     },
     {
-        "path": "/path/to/datasetB",
-        "axis": "t",
+        "array": "/path/to/arrayB",
+        "dimension": 2,
     }
 ],
-```
-
-A dataset MAY backlink to annotations for its axes by having the following metadata in its `.zattrs`:
-
-```json
-"annotations": {                  # Group containing at most one annotation path for each axis
-    "t": "/path/to/t-annotation",
-    "y": "/path/to/y-annotation"
-},
 ```
 
 The on-disk format of a table group looks like this:
@@ -220,7 +211,7 @@ The on-disk format of a table group looks like this:
         |
         ├── .zattrs
         |
-        └── table            # A table group is a container which holds datasets of shape [N] or [N,M], where M is arbitrary and N MUST be the same across all datasets.
+        └── table            # A table group is a container which holds arrays of shape [N] or [N,M], where M is arbitrary and N MUST be the same across all arrays.
             |
             ├── .zgroup      # The table group MAY be in the root of the zarr file or in another group.
             |
@@ -228,16 +219,16 @@ The on-disk format of a table group looks like this:
             |                # `.zattrs` MUST contain "column-order", which is a list of the order of the annotations.
             |                # `.zattrs` MUST contain "annotated-data", which is specified above.
             |
-            ├── annotation_1 # The group can hold an arbitrary number of datasets subject to the above restrictions.
+            ├── annotation_1 # The group can hold an arbitrary number of arrays subject to the above restrictions.
             |   |
             |   ├── .zarray  # If `annotated-data` is not empty, the dimension N MUST correspond to the dimensions of all axes the table is annotating.
-            |   ├── .zattrs  # If `annotated-data` contains exactly one entry, the dimension N of all datasets in the table group
+            |   ├── .zattrs  # If `annotated-data` contains exactly one entry, the dimension N of all arrays in the table group
             |   |            #     SHOULD be chunked in the same way as the corresponding dimension the table is annotating.
             |   ├── 0.0
             |   |   ...
             |   └── n.m
             |
-            └── _index       # The talbe group SHOULD contain a 1D dataset of strings called `_index` (the names of annotated hyperslices).
+            └── _index       # The table group SHOULD contain a 1D array of strings called `_index` (the names of annotated hyperslices).
                 |
                 ├── .zarray
                 ├── .zattrs
