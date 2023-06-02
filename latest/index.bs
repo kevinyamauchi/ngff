@@ -179,21 +179,21 @@ Tables and table annotations {#table-layout}
 ----------------------
 The following section describes the expected layout for tables within an OME-NGFF file. 
 Typically, a table is a 2-dimensional data structure consisting of rows and columns. 
-In this schema, a table is a zarr group containing one or more n-dimensional arrays. 
+In this schema, a table is a Zarr group containing one or more n-dimensional arrays. 
 We expect that 2-dimensional arrays will be typical, but there may be use cases in which
 it is sensible to conceptualize a 1D, 3D, or other-dimensional array as a table.
 
 It is often useful to organize related tables together. In particular, the AnnData
 data model is based on a main table with additional 'annotation' tables that have the same 
-number of rows, columns, or both, as the main table. AnnData tables can be stored in this
-section of an OME-NGFF file. See the AnnData documentation for detailed recommendations on 
-storing AnnData data structures within Zarr. Here, an AnnData dataset corresponds to a table
-group, and the .zattrs file for the table group MUST contain the "annotated-data" property, 
+number of rows, columns, or both, as the main table. AnnData tables can be stored in the tables/
+directory of an OME-NGFF file. See the AnnData documentation for detailed recommendations on 
+formatting AnnData data structures within Zarr. An OME-NGFF table group can be an AnnData dataset, 
+in which case the .zattrs file for the table group MUST contain the "annotated-data" property, 
 as shown below:
 
 
 ```json
-"annotated-data": [               # Array containing all array / axis pairs this table is annotating
+"annotated-data": [               # A JSON array containing all array / axis pairs this table is annotating
     {
         "array": "/path/to/arrayA",
         "dimension": 1,
@@ -220,31 +220,33 @@ The on-disk format of a table group looks like this:
         |
         ├── .zattrs
         |
-        └── table            # A table group is a container which holds arrays of shape [N] or [N,M], where M is arbitrary and N MUST be the same across all arrays.
+        └──tables
             |
-            ├── .zgroup      # The table group MAY be in the root of the zarr file or in another group.
-            |
-            ├── .zattrs      # `.zattrs` MUST contain "type", which is set to `"ngff:table"`
-            |                # `.zattrs` MUST contain "column-order", which is a list of the order of the annotations.
-            |                # `.zattrs` MUST contain "annotated-data", which is specified above.
-            |
-            ├── annotation_1 # The group can hold an arbitrary number of arrays subject to the above restrictions.
-            |   |
-            |   ├── .zarray  # If `annotated-data` is not empty, the dimension N MUST correspond to the dimensions of all axes the table is annotating.
-            |   ├── .zattrs  # If `annotated-data` contains exactly one entry, the dimension N of all arrays in the table group
-            |   |            #     SHOULD be chunked in the same way as the corresponding dimension the table is annotating.
-            |   ├── 0.0
-            |   |   ...
-            |   └── n.m
-            |
-            └── _index       # The table group SHOULD contain a 1D array of strings called `_index` (the names of annotated hyperslices).
+            └── table            # A table group is a container which holds arrays of shape [N] or [N,M], where M is arbitrary and N MUST be the same across all arrays.
                 |
-                ├── .zarray
-                ├── .zattrs
+                ├── .zgroup      # The table group MAY be in the root of the zarr file or in another group.
                 |
-                ├── 0
-                |   .
-                └── n
+                ├── .zattrs      # `.zattrs` MUST contain "type", which is set to `"ngff:table"`
+                |                # `.zattrs` MUST contain "column-order", which is a list of the order of the annotations.
+                |                # `.zattrs` MUST contain "annotated-data", which is specified above.
+                |
+                ├── annotation_1 # The group can hold an arbitrary number of arrays subject to the above restrictions.
+                |   |
+                |   ├── .zarray  # If `annotated-data` is not empty, the dimension N MUST correspond to the dimensions of all axes the table is annotating.
+                |   ├── .zattrs  # If `annotated-data` contains exactly one entry, the dimension N of all arrays in the table group
+                |   |            #     SHOULD be chunked in the same way as the corresponding dimension the table is annotating.
+                |   ├── 0.0
+                |   |   ...
+                |   └── n.m
+                |
+                └── _index       # The table group SHOULD contain a 1D array of strings called `_index` (the names of annotated hyperslices).
+                    |
+                    ├── .zarray
+                    ├── .zattrs
+                    |
+                    ├── 0
+                    |   .
+                    └── n
 </pre>
 
 High-content screening {#hcs-layout}
