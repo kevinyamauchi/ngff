@@ -220,7 +220,7 @@ directory are arbitrary, except in the AnnData case.
 The on-disk format of a table group looks like this:
 
 <pre>
-    .                        # Root folder, potentially in S3.
+    .                            # Root folder, potentially in S3.
     |
     └── 123.zarr
         |
@@ -233,7 +233,7 @@ The on-disk format of a table group looks like this:
             |
             ├── .zattrs
             |
-            └── table_1            # A table group is a container which holds arrays of shape [N] or [N,M], where M is arbitrary and N MUST be the same across all arrays.
+            └── table_1          # A table group is a container which holds arrays of arbitrary dimension, where the number of rows N MUST be the same across all arrays.
                 |
                 ├── .zgroup      
                 |
@@ -241,16 +241,16 @@ The on-disk format of a table group looks like this:
                 |                # `.zattrs` MUST contain "column-order", which is a list of the order of the annotations.
                 |                # `.zattrs` MUST contain "annotated-data", which is specified above.
                 |
-                ├── column_1 # The group can hold an arbitrary number of arrays subject to the above restrictions.
+                ├── column_1     # The group can hold an arbitrary number of arrays subject to the above restrictions.
                 |   |
-                |   ├── .zarray  # If `annotated-data` is not empty, the dimension N MUST correspond to the dimensions of all axes the table is annotating.
+                |   ├── .zarray  # If `annotated-data` is not empty, the number of rows N MUST correspond to the dimensions of all axes the table is annotating.
                 |   ├── .zattrs  # If `annotated-data` contains exactly one entry, the dimension N of all arrays in the table group
                 |   |            #     SHOULD be chunked in the same way as the corresponding dimension the table is annotating.
                 |   ├── 0.0
                 |   |   ...
                 |   └── n.m
                 |
-                └── _index       # The table group SHOULD contain a 1D array of strings called `_index` (the names of annotated columns).
+                └── _index       # The table group SHOULD contain a 1D array of strings called `_index` (the names of rows in the table).
                     |
                     ├── .zarray
                     ├── .zattrs
