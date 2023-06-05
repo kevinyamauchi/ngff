@@ -193,7 +193,6 @@ Tables in an OME-NGFF file are located in the tables/ directory, in the root of 
 Zarr group, alongside the labels/ directory if one is present. The .zattrs file immediately 
 within tables/ MUST contain the "annotated-data" property, as shown below:
 
-
 ```json
 "annotated-data": [               # A JSON array containing all array / dimension pairs this table is annotating
     {
@@ -211,9 +210,21 @@ within tables/ MUST contain the "annotated-data" property, as shown below:
 ],
 ```
 
-There MAY be intermediate directories between tables/ and a particular table.
+The annotated-data metadata specifies that a table is annotating a particular dimension of an array.
+Tables MAY annotate arrays, and can only annotate arrays. If a table is annotating an array,
+then the first dimension of the column(s) (i.e. the number of rows in the table) MUST correspond 
+to the length of the dimension that is being annotated in the source array. If `annotated-data` contains 
+exactly one entry, the first dimension of all arrays in the table group SHOULD be chunked in the same way 
+as the corresponding dimension of the source array.
+
+Note: The AnnData data model is based on a main array with additional 'annotation' 
+tables that have the same number of rows, columns, or both, as the main table. AnnData 
+objects can be stored in the tables/ directory of an OME-NGFF file. See the AnnData 
+documentation for detailed recommendations on formatting AnnData data structures within Zarr.
+
+There MAY be one or more intermediate directories between tables/ and a particular table.
 These SHOULD NOT contain metadata, unless the intermediate directory represents the parent 
-directory for an AnnData object. (See note below.) The names of directories beneath the tables/ 
+directory for an AnnData object. The names of directories beneath the tables/ 
 directory are arbitrary, except in the AnnData case.
 
 
@@ -237,11 +248,8 @@ The on-disk format of a table group looks like this:
                 ├── .zgroup
                 ├── .zattrs      # `.zattrs` MUST contain "column-order", which is a list of the order of the columns.
                 |                # `.zattrs` MUST contain "annotated-data", which is specified above.
-                |                # If `annotated-data` is not empty, the number of rows n MUST correspond to the dimensions of all axes the table is annotating.
-                |                # If `annotated-data` contains exactly one entry, the dimension n of all arrays in the table group
-                |                #     SHOULD be chunked in the same way as the corresponding dimension the table is annotating.
-                |
-                ├── column_1     # The group can hold zero, one, or an arbitrary number of arrays.
+                |     
+                ├── column_1     # The table group MAY hold zero, one, or an arbitrary number of column arrays.
                 |   |
                 |   ├── .zarray
                 |   ├── .zattrs
@@ -259,12 +267,6 @@ The on-disk format of a table group looks like this:
                     |   :
                     └── n
 </pre>
-
-
-Note: The AnnData data model is based on a main table with additional 'annotation' 
-tables that have the same number of rows, columns, or both, as the main table. AnnData 
-objects can be stored in the tables/ directory of an OME-NGFF file. See the AnnData 
-documentation for detailed recommendations on formatting AnnData data structures within Zarr. 
 
 
 High-content screening {#hcs-layout}
