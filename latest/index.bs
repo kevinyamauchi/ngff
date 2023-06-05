@@ -178,9 +178,8 @@ For this example we assume an image with 5 dimensions and axes called `t,c,z,y,x
 Tables and table annotations {#table-layout}
 ----------------------
 A table is a 2-dimensional data structure consisting of rows and columns. 
-Many domain-specific workflows involve tables with certain standard properties.
-Tables can also simply be an intuitive format for storing arbitrary data
-associated with an experiment.
+Tables are an intuitive way of storing arbitrary data or metadata that may be large, 
+highly structured, and may or may not be associated with an image.
 
 In OME-NGFF, a table is a Zarr group containing one or more Zarr arrays, where each
 array represents one column of the table. Columns are ordered, and each column in a 
