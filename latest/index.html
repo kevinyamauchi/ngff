@@ -743,15 +743,15 @@ For this example we assume an image with 5 dimensions and axes called <code>t,c,
     A table is a 2-dimensional data structure consisting of rows and columns. 
 Tables are an intuitive way of storing arbitrary data or metadata that may be large, 
 highly structured, and may or may not be associated with an image. 
-   <p>In OME-NGFF, a table is a Zarr group containing one or more Zarr arrays, where each
+   <p>In OME-NGFF, a table is a Zarr group containing zero, one, or more Zarr arrays, where each
 array represents one column of the table. Columns are ordered, and each column in a 
 table MUST have the same number of rows. While the table itself MUST be 2-dimensional, 
 the columns need not be. 1-dimensional columns will be typical. Nevertheless, there 
 may be use cases in which it is sensible to conceptualize a 2D, 3D, or higher-dimensional 
 array as a single column.</p>
-   <p>Tables in an OME-NGFF file are located in the tables/ directory, in the root of an image’s
+   <p>Tables in an OME-NGFF file are located in the <code>tables/</code> directory, in the root of an image’s
 Zarr group, alongside the labels/ directory if one is present. The .zattrs file immediately 
-within tables/ MUST contain the "annotated-data" property, as shown below:</p>
+within <code>tables/</code> MUST contain the "annotated-data" property, as shown below:</p>
 <pre class="language-json highlight"><c- f>"annotated-data"</c-><c- p>:</c-> <c- p>[</c->               # A JSON array co<c- kc>nta</c->i<c- kc>n</c->i<c- kc>n</c->g all array / dime<c- kc>ns</c->io<c- kc>n</c-> pairs <c- kc>t</c->his <c- kc>ta</c->ble is a<c- kc>nn</c->o<c- kc>tat</c->i<c- kc>n</c->g
     <c- p>{</c->
         <c- f>"array"</c-><c- p>:</c-> <c- u>"/path/to/arrayA"</c-><c- p>,</c->
@@ -773,13 +773,13 @@ then the first dimension of the column(s) (i.e. the number of rows in the table)
 to the length of the dimension that is being annotated in the source array. If <code>annotated-data</code> contains 
 exactly one entry, the first dimension of all arrays in the table group SHOULD be chunked in the same way 
 as the corresponding dimension of the source array.</p>
-   <p class="note" role="note"><span class="marker">Note:</span> The AnnData data model is based on a main array with additional <a class="property css" data-link-type="property">annotation</a> tables that have the same number of rows, columns, or both, as the main table. AnnData 
-objects can be stored in the tables/ directory of an OME-NGFF file. See the AnnData 
+   <p class="note" role="note"><span class="marker">Note:</span> The AnnData data model is based on a main array with additional "annotation"
+tables that have the same number of rows, columns, or both, as the main table. AnnData 
+objects can be stored in the <code>tables/</code> directory of an OME-NGFF file. See the AnnData 
 documentation for detailed recommendations on formatting AnnData data structures within Zarr.</p>
-   <p>There MAY be one or more intermediate directories between tables/ and a particular table.
+   <p>There MAY be one or more intermediate directories between <code>tables/</code> and a particular table.
 These SHOULD NOT contain metadata, unless the intermediate directory represents the parent 
-directory for an AnnData object. The names of directories beneath the tables/ 
-directory are arbitrary, except in the AnnData case.</p>
+directory for an AnnData object. The names of directories beneath the <code>tables/</code> directory are arbitrary, except in the AnnData case.</p>
    <p>The on-disk format of a table group looks like this:</p>
 <pre>.                            # Root folder, potentially in S3.
 |
