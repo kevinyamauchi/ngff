@@ -225,18 +225,16 @@ The on-disk format of a table group looks like this:
     └── 123.zarr
         |
         ├── .zgroup
-        |
         ├── .zattrs
         |
         └──tables
-            ├── .zgroup
             |
+            ├── .zgroup
             ├── .zattrs
             |
             └── table_1          # A table group is a container which holds arrays of arbitrary dimension, where the number of rows N MUST be the same across all arrays.
                 |
                 ├── .zgroup      
-                |
                 ├── .zattrs      # `.zattrs` MUST contain "type", which is set to `"ngff:table"`
                 |                # `.zattrs` MUST contain "column-order", which is a list of the order of the annotations.
                 |                # `.zattrs` MUST contain "annotated-data", which is specified above.
