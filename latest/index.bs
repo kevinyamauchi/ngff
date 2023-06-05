@@ -181,16 +181,16 @@ A table is a 2-dimensional data structure consisting of rows and columns.
 Tables are an intuitive way of storing arbitrary data or metadata that may be large, 
 highly structured, and may or may not be associated with an image.
 
-In OME-NGFF, a table is a Zarr group containing one or more Zarr arrays, where each
+In OME-NGFF, a table is a Zarr group containing zero, one, or more Zarr arrays, where each
 array represents one column of the table. Columns are ordered, and each column in a 
 table MUST have the same number of rows. While the table itself MUST be 2-dimensional, 
 the columns need not be. 1-dimensional columns will be typical. Nevertheless, there 
 may be use cases in which it is sensible to conceptualize a 2D, 3D, or higher-dimensional 
 array as a single column.
 
-Tables in an OME-NGFF file are located in the tables/ directory, in the root of an image's
+Tables in an OME-NGFF file are located in the `tables/` directory, in the root of an image's
 Zarr group, alongside the labels/ directory if one is present. The .zattrs file immediately 
-within tables/ MUST contain the "annotated-data" property, as shown below:
+within `tables/` MUST contain the "annotated-data" property, as shown below:
 
 ```json
 "annotated-data": [               # A JSON array containing all array / dimension pairs this table is annotating
@@ -216,14 +216,14 @@ to the length of the dimension that is being annotated in the source array. If `
 exactly one entry, the first dimension of all arrays in the table group SHOULD be chunked in the same way 
 as the corresponding dimension of the source array.
 
-Note: The AnnData data model is based on a main array with additional 'annotation' 
+Note: The AnnData data model is based on a main array with additional "annotation" 
 tables that have the same number of rows, columns, or both, as the main table. AnnData 
-objects can be stored in the tables/ directory of an OME-NGFF file. See the AnnData 
+objects can be stored in the `tables/` directory of an OME-NGFF file. See the AnnData 
 documentation for detailed recommendations on formatting AnnData data structures within Zarr.
 
-There MAY be one or more intermediate directories between tables/ and a particular table.
+There MAY be one or more intermediate directories between `tables/` and a particular table.
 These SHOULD NOT contain metadata, unless the intermediate directory represents the parent 
-directory for an AnnData object. The names of directories beneath the tables/ 
+directory for an AnnData object. The names of directories beneath the `tables/`
 directory are arbitrary, except in the AnnData case.
 
 
