@@ -195,7 +195,7 @@ within tables/ MUST contain the "annotated-data" property, as shown below:
 
 
 ```json
-"annotated-data": [               # A JSON array containing all array / axis pairs this table is annotating
+"annotated-data": [               # A JSON array containing all array / dimension pairs this table is annotating
     {
         "array": "/path/to/arrayA",
         "dimension": 1,
@@ -232,29 +232,31 @@ The on-disk format of a table group looks like this:
             ├── .zgroup
             ├── .zattrs
             |
-            └── table_1          # A table group is a container which holds arrays of arbitrary dimension, where the number of rows N MUST be the same across all arrays.
+            └── table_1          # A table group holds arrays of arbitrary dimension, where the number of rows n MUST be the same across all arrays.
                 |
-                ├── .zgroup      
-                ├── .zattrs      # `.zattrs` MUST contain "type", which is set to `"ngff:table"`
-                |                # `.zattrs` MUST contain "column-order", which is a list of the order of the annotations.
+                ├── .zgroup
+                ├── .zattrs      # `.zattrs` MUST contain "column-order", which is a list of the order of the columns.
                 |                # `.zattrs` MUST contain "annotated-data", which is specified above.
+                |                # If `annotated-data` is not empty, the number of rows n MUST correspond to the dimensions of all axes the table is annotating.
+                |                # If `annotated-data` contains exactly one entry, the dimension n of all arrays in the table group
+                |                #     SHOULD be chunked in the same way as the corresponding dimension the table is annotating.
                 |
-                ├── column_1     # The group can hold an arbitrary number of arrays subject to the above restrictions.
+                ├── column_1     # The group can hold zero, one, or an arbitrary number of arrays.
                 |   |
-                |   ├── .zarray  # If `annotated-data` is not empty, the number of rows N MUST correspond to the dimensions of all axes the table is annotating.
-                |   ├── .zattrs  # If `annotated-data` contains exactly one entry, the dimension N of all arrays in the table group
-                |   |            #     SHOULD be chunked in the same way as the corresponding dimension the table is annotating.
+                |   ├── .zarray
+                |   ├── .zattrs
+                |   |
                 |   ├── 0.0
                 |   |   ...
                 |   └── n.m
                 |
-                └── _index       # The table group SHOULD contain a 1D array of strings called `_index` (the names of rows in the table).
+                └── row_names    # The table group SHOULD contain a 1D array of strings called `row_names`.
                     |
                     ├── .zarray
                     ├── .zattrs
                     |
                     ├── 0
-                    |   .
+                    |   :
                     └── n
 </pre>
 
