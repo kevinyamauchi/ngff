@@ -191,21 +191,21 @@ columns at the same index in the row dimension.
 
 Tables in an OME-NGFF file are located in the `tables/` directory, in the root of an image's
 Zarr group, alongside the labels/ directory if one is present. The .zattrs file in each
-subgroup of `tables/` MUST contain the "annotated-data" property, which is a JSON array of
+table of `tables/` MUST contain the "annotated-data" property, which is a JSON array of
 Zarr array paths and dimensions (0-based indexing), as shown below:
 
 ```json
 "annotated-data": [                  # A JSON array containing all array / dimension pairs this table is annotating
     {
-        "array": "/path/to/arrayA",  # Annotates the 0-th dimension (rows) of arrayA ...
+        "array": "/path/to/arrayA",  # This table annotates the 0-th dimension of arrayA ...
         "dimension": 0,
     },
     {
-        "array": "/path/to/arrayA",  # ... and the first dimension (columns) of arrayA ...
+        "array": "/path/to/arrayA",  # ... and the first dimension of arrayA ...
         "dimension": 1,
     },
     {
-        "array": "/path/to/arrayB",  # ... and the first dimension (columns) of arrayB.
+        "array": "/path/to/arrayB",  # ... and the first dimension of arrayB.
         "dimension": 1,
     }
 ],
@@ -213,10 +213,16 @@ Zarr array paths and dimensions (0-based indexing), as shown below:
 
 The annotated-data metadata specifies that a table is annotating a particular dimension of an array.
 Tables MAY annotate arrays, and can only annotate arrays. If a table is annotating an array,
-then the first dimension of the column(s) (i.e. the number of rows in the table) MUST correspond 
-to the length of the dimension that is being annotated in the source array. If `annotated-data` contains 
-exactly one entry, the first dimension of all arrays in the table group SHOULD be chunked in the same way 
-as the corresponding dimension of the source array.
+then the 0-th dimension of the column(s) (i.e. the number of rows in the table) MUST correspond 
+to the length of the dimension that is being annotated in the source array. If the source array is
+itself a column of another table, then `"dimension":0` may reasonably be interpreted as "this table is
+annotating the rows of that table", and `"dimension": 1` may be interpreted as "this table is 
+annotating the columns of that table".
+
+A table MUST NOT annotate itself.
+
+If `annotated-data` contains exactly one entry, the 0-th dimension of all arrays (columns) in the table group 
+SHOULD be chunked in the same way as the corresponding dimension of the source array.
 
 Note: The AnnData data model is based on a main array with additional "annotation" 
 tables that have the same number of rows, columns, or both, as the main array. AnnData 
