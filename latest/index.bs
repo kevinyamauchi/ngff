@@ -217,7 +217,7 @@ exactly one entry, the first dimension of all arrays in the table group SHOULD b
 as the corresponding dimension of the source array.
 
 Note: The AnnData data model is based on a main array with additional "annotation" 
-tables that have the same number of rows, columns, or both, as the main table. AnnData 
+tables that have the same number of rows, columns, or both, as the main array. AnnData 
 objects can be stored in the `tables/` directory of an OME-NGFF file. See the AnnData 
 documentation for detailed recommendations on formatting AnnData data structures within Zarr.
 
