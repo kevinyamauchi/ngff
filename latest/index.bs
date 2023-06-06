@@ -186,8 +186,8 @@ array represents one column of the table. Columns are ordered, and each column i
 table MUST have the same number of rows. While the table itself MUST be 2-dimensional, 
 the columns need not be. 1-dimensional columns will be typical. Nevertheless, there 
 may be use cases in which it is sensible to conceptualize a 2D, 3D, or higher-dimensional 
-array as a single column. A row of the table is the set of objects obtained by slicing all
-columns at the same index in the row dimension.
+array as a single column. A row of the table is the set of arrays obtained by slicing all
+columns at the same index in the 0-th dimension.
 
 Tables in an OME-NGFF file are located in the `tables/` directory, in the root of an image's
 Zarr group, alongside the labels/ directory if one is present. The .zattrs file in each
@@ -214,12 +214,7 @@ Zarr array paths and dimensions (0-based indexing), as shown below:
 The annotated-data metadata specifies that a table is annotating a particular dimension of an array.
 Tables MAY annotate arrays, and can only annotate arrays. If a table is annotating an array,
 then the 0-th dimension of the column(s) (i.e. the number of rows in the table) MUST correspond 
-to the length of the dimension that is being annotated in the source array. If the source array is
-itself a column of another table, then `"dimension":0` may reasonably be interpreted as "this table is
-annotating the rows of that table", and `"dimension": 1` may be interpreted as "this table is 
-annotating the columns of that table".
-
-A table MUST NOT annotate itself.
+to the length of the dimension that is being annotated in the source array.
 
 If `annotated-data` contains exactly one entry, the 0-th dimension of all arrays (columns) in the table group 
 SHOULD be chunked in the same way as the corresponding dimension of the source array.
