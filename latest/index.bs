@@ -186,7 +186,8 @@ array represents one column of the table. Columns are ordered, and each column i
 table MUST have the same number of rows. While the table itself MUST be 2-dimensional, 
 the columns need not be. 1-dimensional columns will be typical. Nevertheless, there 
 may be use cases in which it is sensible to conceptualize a 2D, 3D, or higher-dimensional 
-array as a single column.
+array as a single column. A row of the table is the set of objects obtained by slicing all
+columns at the same index in the row dimension.
 
 Tables in an OME-NGFF file are located in the `tables/` directory, in the root of an image's
 Zarr group, alongside the labels/ directory if one is present. The .zattrs file in each
