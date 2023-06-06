@@ -535,7 +535,7 @@ c-[il] { color: #000000 } /* Literal.Number.Integer.Long */
   <div class="head">
    <p data-fill-with="logo"><a class="logo" href="https://www.w3.org/"> <img alt="W3C" height="48" src="https://www.w3.org/StyleSheets/TR/2021/logos/W3C" width="72"> </a> </p>
    <h1 class="p-name no-ref" id="title">Next-generation file formats (NGFF)</h1>
-   <p id="w3c-state"><a href="https://www.w3.org/standards/types#ED">Editor’s Draft</a>, <time class="dt-updated" datetime="2023-06-05">5 June 2023</time></p>
+   <p id="w3c-state"><a href="https://www.w3.org/standards/types#ED">Editor’s Draft</a>, <time class="dt-updated" datetime="2023-06-06">6 June 2023</time></p>
    <details open>
     <summary>More details about this document</summary>
     <div data-fill-with="spec-metadata">
@@ -741,8 +741,8 @@ For this example we assume an image with 5 dimensions and axes called <code>t,c,
 </pre>
    <h3 class="heading settled" data-level="2.2" id="table-layout"><span class="secno">2.2. </span><span class="content">Tables</span><a class="self-link" href="#table-layout"></a></h3>
     A table is a 2-dimensional data structure consisting of rows and columns. 
-Tables are an intuitive way of storing arbitrary data or metadata that may be large, 
-highly structured, and may or may not be associated with an image. 
+Tables are an intuitive way of storing arbitrary data or metadata that are 
+highly structured, potentially large, and are in some way associated with an image. 
    <p>In OME-NGFF, a table is a Zarr group containing zero, one, or more Zarr arrays, where each
 array represents one column of the table. Columns are ordered, and each column in a 
 table MUST have the same number of rows. While the table itself MUST be 2-dimensional, 
