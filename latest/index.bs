@@ -243,8 +243,8 @@ The on-disk format of a table group looks like this:
             ├── .zgroup
             ├── .zattrs
             |
-            └── table_1          # A table group holds arrays of arbitrary dimension, where the number of rows n MUST be the same across all arrays.
-                |
+            └── table_1          # A table group holds arrays (called columns) with one or more dimensions, 
+                |                # where the number of rows n MUST be the same across all arrays.
                 ├── .zgroup
                 ├── .zattrs      # `.zattrs` MUST contain "column-order", which is a list of the order of the columns.
                 |                # `.zattrs` MUST contain "annotated-data", which is specified above.
@@ -258,7 +258,7 @@ The on-disk format of a table group looks like this:
                 |   |   ...
                 |   └── n.m
                 |
-                └── row_names    # The table group SHOULD contain a 1D array of strings called `row_names`.
+                └── row_names    # The table group SHOULD contain a 1D array of strings of length n called `row_names`.
                     |
                     ├── .zarray
                     ├── .zattrs
