@@ -772,8 +772,8 @@ Zarr array paths and dimensions (0-based indexing), as shown below:</p>
    <p>The annotated-data metadata specifies that a table is annotating a particular dimension of an array.
 Tables MAY annotate arrays, and can only annotate arrays. If a table is annotating an array,
 then the 0-th dimension of the column(s) (i.e. the number of rows in the table) MUST correspond 
-to the length of the dimension that is being annotated in the source array.</p>
-   <p>If <code>annotated-data</code> contains exactly one entry, the 0-th dimension of all arrays (columns) in the table group
+to the length of the dimension that is being annotated in the source array. If <code>annotated-data</code> contains 
+exactly one entry, the 0-th dimension of all arrays (columns) in the table group 
 SHOULD be chunked in the same way as the corresponding dimension of the source array.</p>
    <p class="note" role="note"><span class="marker">Note:</span> The AnnData data model is based on a main array with additional "annotation"
 tables that have the same number of rows, columns, or both, as the main array. AnnData 
