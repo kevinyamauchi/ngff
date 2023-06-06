@@ -189,22 +189,23 @@ may be use cases in which it is sensible to conceptualize a 2D, 3D, or higher-di
 array as a single column.
 
 Tables in an OME-NGFF file are located in the `tables/` directory, in the root of an image's
-Zarr group, alongside the labels/ directory if one is present. The .zattrs file immediately 
-within `tables/` MUST contain the "annotated-data" property, as shown below:
+Zarr group, alongside the labels/ directory if one is present. The .zattrs file in each
+subgroup of `tables/` MUST contain the "annotated-data" property, which is a JSON array of
+Zarr array paths and dimensions (0-based indexing), as shown below:
 
 ```json
-"annotated-data": [               # A JSON array containing all array / dimension pairs this table is annotating
+"annotated-data": [                  # A JSON array containing all array / dimension pairs this table is annotating
     {
-        "array": "/path/to/arrayA",
+        "array": "/path/to/arrayA",  # Annotates the 0-th dimension (rows) of arrayA ...
+        "dimension": 0,
+    },
+    {
+        "array": "/path/to/arrayA",  # ... and the first dimension (columns) of arrayA ...
         "dimension": 1,
     },
     {
-        "array": "/path/to/arrayA",
-        "dimension": 2,
-    },
-    {
-        "array": "/path/to/arrayB",
-        "dimension": 2,
+        "array": "/path/to/arrayB",  # ... and the first dimension (columns) of arrayB.
+        "dimension": 1,
     }
 ],
 ```
