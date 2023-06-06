@@ -748,22 +748,24 @@ array represents one column of the table. Columns are ordered, and each column i
 table MUST have the same number of rows. While the table itself MUST be 2-dimensional, 
 the columns need not be. 1-dimensional columns will be typical. Nevertheless, there 
 may be use cases in which it is sensible to conceptualize a 2D, 3D, or higher-dimensional 
-array as a single column.</p>
+array as a single column. A row of the table is the set of objects obtained by slicing all
+columns at the same index in the row dimension.</p>
    <p>Tables in an OME-NGFF file are located in the <code>tables/</code> directory, in the root of an image’s
-Zarr group, alongside the labels/ directory if one is present. The .zattrs file immediately 
-within <code>tables/</code> MUST contain the "annotated-data" property, as shown below:</p>
-<pre class="language-json highlight"><c- f>"annotated-data"</c-><c- p>:</c-> <c- p>[</c->               # A JSON array co<c- kc>nta</c->i<c- kc>n</c->i<c- kc>n</c->g all array / dime<c- kc>ns</c->io<c- kc>n</c-> pairs <c- kc>t</c->his <c- kc>ta</c->ble is a<c- kc>nn</c->o<c- kc>tat</c->i<c- kc>n</c->g
+Zarr group, alongside the labels/ directory if one is present. The .zattrs file in each
+subgroup of <code>tables/</code> MUST contain the "annotated-data" property, which is a JSON array of
+Zarr array paths and dimensions (0-based indexing), as shown below:</p>
+<pre class="language-json highlight"><c- f>"annotated-data"</c-><c- p>:</c-> <c- p>[</c->                  # A JSON array co<c- kc>nta</c->i<c- kc>n</c->i<c- kc>n</c->g all array / dime<c- kc>ns</c->io<c- kc>n</c-> pairs <c- kc>t</c->his <c- kc>ta</c->ble is a<c- kc>nn</c->o<c- kc>tat</c->i<c- kc>n</c->g
     <c- p>{</c->
-        <c- f>"array"</c-><c- p>:</c-> <c- u>"/path/to/arrayA"</c-><c- p>,</c->
+        <c- f>"array"</c-><c- p>:</c-> <c- u>"/path/to/arrayA"</c-><c- p>,</c->  # A<c- kc>nn</c->o<c- kc>tates</c-> <c- kc>t</c->he <c- mi>0-</c-><c- kc>t</c->h dime<c- kc>ns</c->io<c- kc>n</c-> (rows) o<c- kc>f</c-> arrayA ...
+        <c- f>"dimension"</c-><c- p>:</c-> <c- mi>0</c-><c- p>,</c->
+    <c- p>},</c->
+    <c- p>{</c->
+        <c- f>"array"</c-><c- p>:</c-> <c- u>"/path/to/arrayA"</c-><c- p>,</c->  # ... a<c- kc>n</c->d <c- kc>t</c->he <c- kc>f</c->irs<c- kc>t</c-> dime<c- kc>ns</c->io<c- kc>n</c-> (colum<c- kc>ns</c->) o<c- kc>f</c-> arrayA ...
         <c- f>"dimension"</c-><c- p>:</c-> <c- mi>1</c-><c- p>,</c->
     <c- p>},</c->
     <c- p>{</c->
-        <c- f>"array"</c-><c- p>:</c-> <c- u>"/path/to/arrayA"</c-><c- p>,</c->
-        <c- f>"dimension"</c-><c- p>:</c-> <c- mi>2</c-><c- p>,</c->
-    <c- p>},</c->
-    <c- p>{</c->
-        <c- f>"array"</c-><c- p>:</c-> <c- u>"/path/to/arrayB"</c-><c- p>,</c->
-        <c- f>"dimension"</c-><c- p>:</c-> <c- mi>2</c-><c- p>,</c->
+        <c- f>"array"</c-><c- p>:</c-> <c- u>"/path/to/arrayB"</c-><c- p>,</c->  # ... a<c- kc>n</c->d <c- kc>t</c->he <c- kc>f</c->irs<c- kc>t</c-> dime<c- kc>ns</c->io<c- kc>n</c-> (colum<c- kc>ns</c->) o<c- kc>f</c-> arrayB.
+        <c- f>"dimension"</c-><c- p>:</c-> <c- mi>1</c-><c- p>,</c->
     <c- p>}</c->
 <c- p>],</c->
 </pre>
@@ -793,8 +795,8 @@ directory for an AnnData object. The names of directories beneath the <code>tabl
         ├── .zgroup
         ├── .zattrs
         |
-        └── table_1          # A table group holds arrays of arbitrary dimension, where the number of rows n MUST be the same across all arrays.
-            |
+        └── table_1          # A table group holds arrays (called columns) with one or more dimensions, 
+            |                # where the number of rows n MUST be the same across all arrays.
             ├── .zgroup
             ├── .zattrs      # <code>.zattrs</code> MUST contain "column-order", which is a list of the order of the columns.
             |                # <code>.zattrs</code> MUST contain "annotated-data", which is specified above.
@@ -808,7 +810,7 @@ directory for an AnnData object. The names of directories beneath the <code>tabl
             |   |   ...
             |   └── n.m
             |
-            └── row_names    # The table group SHOULD contain a 1D array of strings called <code>row_names</code>.
+            └── row_names    # The table group SHOULD contain a 1D array of strings of length n called <code>row_names</code>.
                 |
                 ├── .zarray
                 ├── .zattrs
