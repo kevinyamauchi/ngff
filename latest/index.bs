@@ -237,12 +237,12 @@ The on-disk format of a table group looks like this:
     └── 123.zarr
         |
         ├── .zgroup
-        ├── .zattrs
         |
         └──tables
             |
             ├── .zgroup
-            ├── .zattrs
+            ├── .zattrs          # A table group's `.zattrs` file MUST contain an attribute "tables" that lists all
+            |                    # tables in the group with relative paths, e.g., `{"tables": ["table_1", "some/nested/table_2"]}` 
             |
             └── table_1          # A table group holds arrays (called columns) with one or more dimensions, 
                 |                # where the number of rows n MUST be the same across all arrays.
@@ -253,7 +253,6 @@ The on-disk format of a table group looks like this:
                 ├── column_1     # The table group MAY hold zero, one, or an arbitrary number of column arrays.
                 |   |
                 |   ├── .zarray
-                |   ├── .zattrs
                 |   |
                 |   ├── 0.0
                 |   |   ...
@@ -262,7 +261,6 @@ The on-disk format of a table group looks like this:
                 └── row_names    # The table group SHOULD contain a 1D array of strings of length n called `row_names`.
                     |
                     ├── .zarray
-                    ├── .zattrs
                     |
                     ├── 0
                     |   :

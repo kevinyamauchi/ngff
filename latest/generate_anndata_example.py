@@ -33,6 +33,7 @@ def write_anndata(adata, filename, chunks):
     root = zarr.open(filename, mode="w")
     root.array("some_image", np.array([0]), chunks=(1,))
     tables = root.create_group("tables")
+    tables.attrs["tables"] = ["/anndata/obs", "/anndata/var", "/anndata/obsm", "/anndata/varm", "/anndata/obsp", "/anndata/varp"]
     adgroup = tables.create_group("anndata")
     adgroup.attrs["anndata"] = "0.9.1"
     adgroup.attrs["other-metadata"] = "metadata describing how the anndata annotates some_image"
@@ -96,6 +97,7 @@ def write_anndata_suggestion(adata, filename, chunks):
     root = zarr.open(filename, mode="w")
     root.array("some_image", np.array([0]), chunks=(1,))
     tables = root.create_group("tables")
+    tables.attrs["tables"] = ["/anndata/obs", "/anndata/var"]
     adgroup = tables.create_group("anndata")
     adgroup.attrs["anndata"] = "0.9.1"
     adgroup.attrs["other-metadata"] = "metadata describing how the anndata annotates some_image"
@@ -107,7 +109,6 @@ def write_anndata_suggestion(adata, filename, chunks):
     row_names = np.array(["X", "log_transformed", "other_data"])
     layers.create_dataset("row_names", data=row_names, dtype=object, object_codec=numcodecs.VLenUTF8())
     layers.attrs["annotated-data"] = [{"array": "/tables/anndata/X", "dimension": "2"}]
-    obs.attrs["column-order"] = ["row_names"]
 
     # obs (combines obs, obsm, obsp)
     localChunks = (chunks[0],)
