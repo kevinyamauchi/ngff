@@ -51,6 +51,7 @@ def write_anndata(adata, filename, chunks):
     obs.create_dataset("cell_type", data=np.array(adata.obs["cell_type"]), chunks=localChunks, object_codec=numcodecs.VLenUTF8())
     obs.attrs["annotated-data"] = get_annotated_data_map(dimension=0)
     obs.attrs["column-order"] = ["row_names", "cell_type"]
+    obs.attrs["row-names"] = "row_names"
 
     # obsm
     obsm = adgroup.create_group("obsm")
@@ -69,6 +70,7 @@ def write_anndata(adata, filename, chunks):
     var.create_dataset("row_names", data=np.array(adata.var_names), chunks=(chunks[1],), object_codec=numcodecs.VLenUTF8())
     var.attrs["annotated-data"] = get_annotated_data_map(dimension=1)
     var.attrs["column-order"] = ["row_names"]
+    var.attrs["row-names"] = "row_names"
 
     # varm
     varm = adgroup.create_group("varm")
@@ -109,6 +111,7 @@ def write_anndata_suggestion(adata, filename, chunks):
     row_names = np.array(["X", "log_transformed", "other_data"])
     layers.create_dataset("row_names", data=row_names, dtype=object, object_codec=numcodecs.VLenUTF8())
     layers.attrs["annotated-data"] = [{"array": "/tables/anndata/X", "dimension": "2"}]
+    layers.attrs["row-names"] = "row_names"
 
     # obs (combines obs, obsm, obsp)
     localChunks = (chunks[0],)
@@ -119,6 +122,7 @@ def write_anndata_suggestion(adata, filename, chunks):
     obs.create_dataset("pairwise_data", data=adata.obsp["pairwise_data"].todense(), chunks=(chunks[0], chunks[0]))
     obs.attrs["annotated-data"] = [{"array": "/tables/anndata/X", "dimension": "0"}]
     obs.attrs["column-order"] = ["row_names", "cell_type", "X_umap", "pairwise_data"]
+    obs.attrs["row-names"] = "row_names"
 
     # var (combines var, varm, varp)
     var = adgroup.create_group("var")
@@ -126,6 +130,7 @@ def write_anndata_suggestion(adata, filename, chunks):
     var.create_dataset("gene_stuff", data=adata.varm["gene_stuff"], chunks=(chunks[1], 5))
     var.attrs["annotated-data"] = [{"array": "/tables/anndata/X", "dimension": "1"}]
     var.attrs["column-order"] = ["row_names", "gene_stuff"]
+    var.attrs["row-names"] = "row_names"
 
     # uns
     uns = adgroup.create_group("uns")
