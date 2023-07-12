@@ -189,10 +189,33 @@ may be use cases in which it is sensible to conceptualize a 2D, 3D, or higher-di
 array as a single column. A row of the table is the set of arrays obtained by slicing all
 columns at the same index in the 0-th dimension.
 
-Tables in an OME-NGFF file are located in the `tables/` directory, in the root of an image's
-Zarr group, alongside the labels/ directory if one is present. The .zattrs file in each
-table of `tables/` MUST contain the "annotated-data" property, which is a JSON array of
-Zarr array paths and dimensions (0-based indexing), as shown below:
+Tables are located in the `tables/` directory, in the root of an image's
+Zarr group, alongside the `labels/` directory if one is present. The .zattrs file
+of `tables` MUST contain the "tables" property, which indicates the names of the
+tables as a JSON array. 
+
+The .zattrs file in each table of `tables/` MAY contain the property "row-names", 
+and it MUST contain the two properties "column-order", and "annotated-data".
+
+"row-names" is a string indicating which column, if any, contains the table's row names.
+An array of row names is a special column containing no duplicate or missing values.
+For example, in a table in which the rows represent genes, it may be sensible to
+designate the column called "geneID" as the "row-names" column. The "row-names" column
+may be either an array of strings or an array of integers. The "row-names" column need not appear
+first in the ordered array of column names. Either a missing "row-names" property or an empty
+string value (i.e. "row-names": "") indicates that the table does not have row names.
+
+"column-order" is a JSON array containing all of the column names, in order. Column names listed 
+in "column-order" MUST be strings, even if they are string representations of a digit, e.g. "1". 
+If the table contains no columns, then "column-order" MUST be an empty array.
+
+In some cases, the table provides information about--in other words, annotates--a
+particular dimension of an array.  The "annotated-data" property describes these cases.
+Tables MAY annotate arrays, and can only annotate arrays.  If a table is annotating an
+array, then the 0-th dimension of the column(s) (i.e. the number of rows in the table)
+MUST correspond to the length of the dimension that is being annotated in the source
+array. The required "annotated-data" property is a JSON array of Zarr array paths and
+dimensions (0-based indexing), as shown below:
 
 ```json
 "annotated-data": [                  # A JSON array containing all array / dimension pairs this table is annotating
@@ -211,12 +234,10 @@ Zarr array paths and dimensions (0-based indexing), as shown below:
 ],
 ```
 
-The annotated-data metadata specifies that a table is annotating a particular dimension of an array.
-Tables MAY annotate arrays, and can only annotate arrays. If a table is annotating an array,
-then the 0-th dimension of the column(s) (i.e. the number of rows in the table) MUST correspond 
-to the length of the dimension that is being annotated in the source array. If `annotated-data` contains 
-exactly one entry, the 0-th dimension of all arrays (columns) in the table group 
-SHOULD be chunked in the same way as the corresponding dimension of the source array.
+The "annotated-data" property MUST be present, but it MAY be an empty JSON array. If
+`annotated-data` contains exactly one entry, then the 0-th dimension of all arrays
+(columns) in the table group SHOULD be chunked in the same way as the corresponding
+dimension of the source array. 
 
 Note: The AnnData data model is based on a main array with additional "annotation" 
 tables that have the same number of rows, columns, or both, as the main array. AnnData 
