@@ -178,8 +178,8 @@ For this example we assume an image with 5 dimensions and axes called `t,c,z,y,x
 Tables {#table-layout}
 ----------------------
 A table is a 2-dimensional data structure consisting of rows and columns. 
-Tables are an intuitive way of storing arbitrary data or metadata that are 
-highly structured, potentially large, and are in some way associated with an image.
+Tables are an intuitive way of organizing data or metadata consisting of variables
+and records, which are often organized as columns and rows, respectively.
 
 In OME-NGFF, a table is a Zarr group containing zero, one, or more Zarr arrays, where each
 array represents one column of the table. Columns are ordered, and each column in a 
