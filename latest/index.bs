@@ -268,25 +268,18 @@ The on-disk format of a table group looks like this:
             └── table_1          # A table group holds arrays (called columns) with one or more dimensions, 
                 |                # where the number of rows n MUST be the same across all columns.
                 ├── .zgroup
-                ├── .zattrs      # `.zattrs` MUST contain "column-order", which is a list of the order of the columns.
+                ├── .zattrs      # `.zattrs` MAY contain "row-names", which states which column contains row names.
+                |                # `.zattrs` MUST contain "column-order", which is a list of the order of the columns.
                 |                # `.zattrs` MUST contain "annotated-data", which is specified above.
-                |                # `.zattrs` MAY contain "row-names", which states which column contains row names.
+                |                
                 |     
-                ├── column_1     # The table group MAY hold zero, one, or an arbitrary number of columns.
-                |   |
-                |   ├── .zarray
-                |   |
-                |   ├── 0.0
-                |   |   ...
-                |   └── n.m
-                |
-                └── row_names    # A column that is referred to by the table's "row-names" attribute (i.e., `{"row-names": "row_names"}`):
-                    |            # MUST be a one dimensional array of strings or integers,
-                    ├── .zarray  # MUST have unique entries.
+                └── column_1     # The table group MAY hold zero, one, or an arbitrary number of columns.
                     |
-                    ├── 0
-                    |   :
-                    └── n
+                    ├── .zarray
+                    |
+                    ├── 0.0
+                    |   ...
+                    └── n.m
 </pre>
 
 
