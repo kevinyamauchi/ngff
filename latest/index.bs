@@ -218,17 +218,17 @@ array. The required "annotated-data" property is a JSON array of Zarr array path
 dimensions (0-based indexing), as shown below:
 
 ```json
-"annotated-data": [                  # A JSON array containing all array / dimension pairs this table is annotating
+"annotated-data": [                  // A JSON array containing all array / dimension pairs this table is annotating
     {
-        "array": "/path/to/arrayA",  # This table annotates the 0-th dimension of arrayA ...
+        "array": "/path/to/arrayA",  // This table annotates the 0-th dimension of arrayA ...
         "dimension": 0,
     },
     {
-        "array": "/path/to/arrayA",  # ... and the first dimension of arrayA ...
+        "array": "/path/to/arrayA",  // ... and the first dimension of arrayA ...
         "dimension": 1,
     },
     {
-        "array": "/path/to/arrayB",  # ... and the first dimension of arrayB.
+        "array": "/path/to/arrayB",  // ... and the first dimension of arrayB.
         "dimension": 1,
     }
 ],
@@ -686,8 +686,7 @@ Projects which support reading and/or writing OME-NGFF data include:
 
 </dl>
 
-<img src="https://downloads.openmicroscopy.org/presentations/2020/Dundee/Workshops/NGFF/zarr_diagram/images/zarr-ome-diagram.png"
-    alt="Diagram of related projects"/>
+<img src="https://downloads.openmicroscopy.org/presentations/2020/Dundee/Workshops/NGFF/zarr_diagram/images/zarr-ome-diagram.png" alt="Diagram of related projects"></img>
 
 All implementations prevent an equivalent representation of a dataset which can be downloaded or uploaded freely. An interactive
 version of this diagram is available from the [OME2020 Workshop](https://downloads.openmicroscopy.org/presentations/2020/Dundee/Workshops/NGFF/zarr_diagram/).
