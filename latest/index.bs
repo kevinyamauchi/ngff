@@ -218,17 +218,17 @@ array. The required "annotated-data" property is a JSON array of Zarr array path
 dimensions (0-based indexing), as shown below:
 
 ```json
-"annotated-data": [                  # A JSON array containing all array / dimension pairs this table is annotating
+"annotated-data": [                  // A JSON array containing all array / dimension pairs this table is annotating
     {
-        "array": "/path/to/arrayA",  # This table annotates the 0-th dimension of arrayA ...
+        "array": "/path/to/arrayA",  // This table annotates the 0-th dimension of arrayA ...
         "dimension": 0,
     },
     {
-        "array": "/path/to/arrayA",  # ... and the first dimension of arrayA ...
+        "array": "/path/to/arrayA",  // ... and the first dimension of arrayA ...
         "dimension": 1,
     },
     {
-        "array": "/path/to/arrayB",  # ... and the first dimension of arrayB.
+        "array": "/path/to/arrayB",  // ... and the first dimension of arrayB.
         "dimension": 1,
     }
 ],
