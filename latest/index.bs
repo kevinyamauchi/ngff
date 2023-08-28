@@ -177,307 +177,111 @@ For this example we assume an image with 5 dimensions and axes called `t,c,z,y,x
 
 Tables {#table-layout}
 ----------------------
-The following describes the expected layout for tabular data.
-OME-NGFF tables are compatible with the [AnnData model](https://github.com/scverse/anndata).
+A table is a 2-dimensional data structure consisting of rows and columns. 
+Tables are an intuitive way of organizing data or metadata consisting of variables
+and records, which are often organized as columns and rows, respectively.
+
+In OME-NGFF, a table is a Zarr group containing zero, one, or more Zarr arrays, where each
+array represents one column of the table. Columns are ordered, and each column in a 
+table MUST have the same number of rows. While the table itself MUST be 2-dimensional, 
+the columns need not be. 1-dimensional columns will be typical. Nevertheless, there 
+may be use cases in which it is sensible to conceptualize a 2D, 3D, or higher-dimensional 
+array as a single column. A row of the table is the set of arrays obtained by slicing all
+columns at the same index in the 0-th dimension.
+
+Tables are located in the `tables/` directory, in the root of an image's
+Zarr group, alongside the `labels/` directory if one is present. The .zattrs file
+of `tables` MUST contain the "tables" property, which indicates the names of the
+tables as a JSON array. 
+
+The .zattrs file in each table of `tables/` MAY contain the property "row-names", 
+and it MUST contain the two properties "column-order", and "annotated-data".
+
+"row-names" is a string indicating which column, if any, contains the table's row names.
+An array of row names is a special column containing no duplicate or missing values.
+For example, in a table in which the rows represent genes, it may be sensible to
+designate the column called "geneID" as the "row-names" column. The "row-names" column
+may be either an array of strings or an array of integers. The "row-names" column need not appear
+first in the ordered array of column names. Either a missing "row-names" property or an empty
+string value (i.e. "row-names": "") indicates that the table does not have row names.
+
+"column-order" is a JSON array containing all of the column names, in order. Column names listed 
+in "column-order" MUST be strings, even if they are string representations of a digit, e.g. "1". 
+If the table contains no columns, then "column-order" MUST be an empty array.
+
+In some cases, the table provides information about--in other words, annotates--a
+particular dimension of an array.  The "annotated-data" property describes these cases.
+Tables MAY annotate arrays, and can only annotate arrays.  If a table is annotating an
+array, then the 0-th dimension of the column(s) (i.e. the number of rows in the table)
+MUST correspond to the length of the dimension that is being annotated in the source
+array. The required "annotated-data" property is a JSON array of Zarr array paths and
+dimensions (0-based indexing), as shown below:
+
+```json
+"annotated-data": [                  // A JSON array containing all array / dimension pairs this table is annotating
+    {
+        "array": "/path/to/arrayA",  // This table annotates the 0-th dimension of arrayA ...
+        "dimension": 0,
+    },
+    {
+        "array": "/path/to/arrayA",  // ... and the first dimension of arrayA ...
+        "dimension": 1,
+    },
+    {
+        "array": "/path/to/arrayB",  // ... and the first dimension of arrayB.
+        "dimension": 1,
+    }
+],
+```
+
+The "annotated-data" property MUST be present, but it MAY be an empty JSON array. If
+`annotated-data` contains exactly one entry, then the 0-th dimension of all arrays
+(columns) in the table group SHOULD be chunked in the same way as the corresponding
+dimension of the source array. 
+
+Note: The AnnData data model is based on a main array with additional "annotation" 
+tables that have the same number of rows, columns, or both, as the main array. AnnData 
+objects can be stored in the `tables/` directory of an OME-NGFF file. See the AnnData 
+documentation for detailed recommendations on formatting AnnData data structures within Zarr.
+
+There MAY be one or more intermediate directories between `tables/` and a particular table.
+These SHOULD NOT contain metadata, unless the intermediate directory represents the parent 
+directory for an AnnData object. The names of directories beneath the `tables/`
+directory are arbitrary, except in the AnnData case.
+
+
+The on-disk format of a table group looks like this:
 
 <pre>
-.                             # Root folder, potentially in S3,
-│                             # with a flat list of images.
-│
-└── 123.zarr
+    .                            # Root folder, potentially in S3.
     |
-    ├── .zgroup
-    |
-    ├── .zattrs
-    |
-    └── tables                # The tables group is a container which holds one or multiple tables that are compatible with AnnData.
+    └── 123.zarr
         |
-        │                     # The tables group MAY be in the root of the zarr file.
-        ├── .zgroup           # The tables group MAY be in root or in another group.
+        ├── .zgroup
         |
-        ├── .zattrs           # `.zattrs` MUST contain "tables", which lists the keys of the subgroups that are tables. In this case, the only table is "my_table".
-                              # hence `.zattrs` should be equal to `{ "tables": [ "my_table" ] }`.
-        |
-        └── my_table
-            │                     # The table group MAY be in the root of the zarr file.
-            ├── .zgroup           # The table group MAY be in root or in another group.
+        └──tables
             |
-            ├── .zattrs           # `.zattrs` MUST contain "type", which is set to `"ngff:region_table"`
-            |                     # `.zattrs` MUST contain "region", which is the path to the data the table is annotating.
-            |                     # "region" MUST be a single path (single region) or an array of paths (multiple regions).
-            |                     # "region" paths MUST be objects with a key "path" and the path value MUST be a string.
-            |                     # `.zattrs` MUST contain "region_key" if "region" is an array. "region_key" is the key in `obs` denoting which region a given row corresponds to.
-            |                     # `.zattrs` MAY contain "instance_key", which is the key in `obs` that denotes which instance in "region" the row corresponds to. If "instance_key" is not provided, the values from the `obs` `.zattrs` "_index" key is used.
-            │
-            ├── X                 # You MAY add an zarr array `X`.
-            │   │                 # `X` MUST not be a complex type (i.e., MUST be a single type)
-            │   │                 # `X` MAY be chunked as the user desires.
-            │   ├── .zarray
-            │   ├── 0.0
-            │   │   ...
-            │   └── n.m
+            ├── .zgroup
+            ├── .zattrs          # A table group's `.zattrs` file MUST contain an attribute "tables" that lists all
+            |                    # tables in the group with relative paths, e.g., `{"tables": ["table_1", "some/nested/table_2"]}` 
             |
-            ├── layers            # You MAY add a `layers` group, which contains dense matrices with the same shape as X.
-            │   │
-            │   ├── .zgroup
-            │   ├── .zattrs       # `.zattrs` MUST contain `"keys"`, which is an array of the names of the subgroups containing a `layer`.
-            │   │
-            │   └── layer_0       # You MAY add a zarr array for each layer
-            |       |             # Each layer array MUST have the same shape as X
-            |       |             # Each layer array SHOULD be chunked the same as X
-            |       ├── .zarray
-            |       |
-            |       ├── 0.0
-            │       │   ...
-            │       └── n.m
-            │        
-            ├── obs               # You MUST add an obs group container. The obs group holds a table of annotations on the rows in X.
-            │   │                 # The rows in obs MUST be index-matched to the rows in X.
-            │   ├── .zgroup
-            │   │                     
-            │   ├── .zattrs       # `.zattrs` MUST contain `"_index"`, which is the name of the column in obs to be used as the index.           
-            │   │                 # `.zattrs` MUST contain `"column-order"`, which is a list of the order of the non-_index columns.
-            │   │                 # `.zattrs` MUST contain `"encoding-type"`, which is set to `"dataframe"` by AnnData.
-            │   │                 # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.2.0"` by AnnData.
-            │   │      
-            │   └── col_0         # Each column in the obs table is a 1D zarr array. The rows can be chunked as the user desires.
-            │       ├── .zarray   # However, the obs columns SHOULD be chunked in the same way as the rows in X (if present).
-            │       │
-            │       └─ 0
-            ├── var               # You MAY add a var group container. The var group holds a table of annotations on the columns in X.
-            |   │                 # The rows in var MUST be index-matched to the columns in X (if present). 
-            |   |
-            |   ├── .zattrs       # `.zattrs` MUST contain `"_index"`, which is the name of the column in obs to be used as the index.           
-            |   │                 # `.zattrs` MUST contain `"column-order"`, which is a list of the order of the non-_index columns.
-            |   │                 # `.zattrs` MUST contain `"encoding-type"`, which is set to `"dataframe"` by AnnData.
-            |   │                 # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.2.0"` by AnnData.
-            |   │
-            |   ├── array_col     # Columns in the var table MAY be a 1D zarr array. The rows can be chunked as the user desires.
-            |   |   ├── .zarray   # However, the var columns SHOULD be chunked in the same way as the columns in X.
-            |   |   │
-            |   |   └─ 0
-            |   |
-            |   └── cat_col       # Columns in the var table MAY be categorical
-            |       ├── .zattrs.  # `.zattrs` MUST contain `"encoding-type"`, which is set to `"categorical"` by AnnData.
-            |       |             # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.2.0"` by AnnData.
-            |       |
-            |       ├── categories
-            |       |  ├── .zarray # categories MUST be a 1D zarr array. The rows can be chunked as the user desires.
-            |       |  |
-            |       |  └─ 0
-            |       ├── codes
-            |       |  ├── .zarray # codes MUST be a 1D zarr array. The rows can be chunked as the user desires.
-            |       |  |
-            |       |  └─ 0
-            |       |
-            |       ├── null_col  # Columns in the var table MAY nullable integer
-            |       ├── .zattrs.  # `.zattrs` MUST contain `"encoding-type"`, which is set to `"nullable-integer"` by AnnData.
-            |       |             # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.1.0"` by AnnData.
-            |       |
-            |       ├── mask
-            |       |  ├── .zarray # categories MUST be a 1D zarr array. The rows can be chunked as the user desires.
-            |       |  |
-            |       |  └─ 0
-            |       └── values
-            |          ├── .zarray # codes MUST be a 1D zarr array. The rows can be chunked as the user desires.
-            |          |
-            |          └─ 0
-            |
-            ├── obsm              # You MAY add a obsm group comtainer. The obsm group contains arrays that annotate the rows in X.
-            |   │                 # The rows in each array MUST be index-matched to the rows in X (if present). 
-            |   |
-            │   ├── .zgroup
-            |   |
-            |   ├── .zattrs       # `.zattrs` MUST contain `"encoding-type"`, which is set to `"dict"` by AnnData.           
-            |   │                 # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.1.0"` by AnnData.
-            |   |                 # `.zattrs` MUST contain `"keys"`, which is an array of the names of the subgroups containing `obsm` arrays.
-            |   │
-            │   └── obsm_0        # You MAY add a zarr array for each obsm matrix.
-            |       |             # Each obsm array MUST have the same number of rows as X.
-            |       |             # The rows in each obsm array SHOULD be chunked the same as the rows in X.
-            |       ├── .zarray
-            |       |
-            |       ├── 0.0
-            │       │   ...
-            │       └── n.m
-            |
-            ├── varm              # You MAY add a varm group comtainer. The varm group contains arrays that annotate the columns in X.
-            |   │                 # The rows in each array MUST be index-matched to the columns in X (if present). 
-            |   |
-            │   ├── .zgroup
-            |   |
-            |   ├── .zattrs       # `.zattrs` MUST contain `"encoding-type"`, which is set to `"dict"` by AnnData.           
-            |   │                 # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.1.0"` by AnnData.
-            |   |                 # `.zattrs` MUST contain `"keys"`, which is an array of the names of the subgroups containing `varm` arrays.
-            |   │
-            │   └── varm_0        # You MAY add a zarr array for each varm matrix.
-            |       |             # Each varm array MUST have the same number of rows as columns in X.
-            |       |             # The rows in each obsm array SHOULD be chunked the same as the columns in X.
-            |       ├── .zarray
-            |       ├── 0.0
-            │       │   ...
-            │       └── n.m
-            |
-            ├── obsp              # You MAY add a obsp group comtainer. The obsp group contains sparse arrays that annotate the rows in X.
-            |   │                 # The rows in each array MUST be index-matched to the columns in X (if present). 
-            |   |
-            │   ├── .zgroup
-            |   |
-            |   ├── .zattrs       # `.zattrs` MUST contain `"encoding-type"`, which is set to `"dict"` by AnnData.           
-            |   │                 # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.1.0"` by AnnData.
-            |   |                 # `.zattrs` MUST contain `"keys"`, which is an array of the names of the subgroups containing `obsp` arrays.
-            |   │
-            │   └── obsp_0        # You MAY add a zarr group for each obsp array.
-            |       |             # Each obsp array MUST have the same number of rows as rows in X.
-            |       |
-            │       ├── .zgroup
-            |       |
-            |       ├── .zattrs   # `.zattrs` MUST contain `"encoding-type"`, which is set to `"csr_matrix"` or `"csc_matrix"` for compressed sparse row and compressed sparse column, respectively.          
-            |       │             # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.1.0"` by AnnData.
-            |       |             # `.zattrs` MUST contain `"shape"` which is an array giving the shape of the densified array.
-            |       |
-            |       ├── data      # You MUST add a one-dimensional zarr array named "data". 
-            |       |   |         # `data` MAY be chunked as the user desires.
-            |       |   ├── .zarray
-            |       |   |
-            |       |   ├── 0
-            │       │   |   ...
-            │       |   └── n
-            |       |
-            |       ├── indices   # You MUST add a one-dimensional zarr array named "indices".
-            |       |   |         # `indices` MAY be chunked as the user desires.
-            |       |   ├── .zarray  # `indices` MUST be an `int` dtype.
-            |       |   |
-            |       |   ├── 0
-            │       │   |   ...
-            │       |   └── n
-            |       |
-            |       └── indptr    # You MUST add a one-dimensional zarr array named "indptr".
-            |           |         # `indptr` MAY be chunked as the user desires.
-            |           ├── .zarray  # `indptr` MUST be an `int` dtype.
-            |           |
-            |           ├── 0
-            │           |   ...
-            │           └── n
-            |
-            ├── varp              # You MAY add a varp group comtainer. The varp group contains sparse arrays that annotate the columns in X.
-            |   │                 # The rows in each array MUST be index-matched to the columns in X (if present). 
-            |   |
-            │   ├── .zgroup
-            |   |
-            |   ├── .zattrs       # `.zattrs` MUST contain `"encoding-type"`, which is set to `"dict"` by AnnData.           
-            |   │                 # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.1.0"` by AnnData.
-            |   |                 # `.zattrs` MUST contain `"keys"`, which is an array of the names of the subgroups containing `varp` arrays.
-            |   │
-            │   └── varp_0        # You MAY add a zarr group for each varp array.
-            |       |             # Each varp array MUST have the same number of rows as columns in X.
-            |       |
-            │       ├── .zgroup
-            |       |
-            |       ├── .zattrs   # `.zattrs` MUST contain `"encoding-type"`, which is set to `"csr_matrix"` or `"csc_matrix"` for compressed sparse row and compressed sparse column, respectively.           
-            |       │             # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.1.0"` by AnnData.
-            |       |             # `.zattrs` MUST contain `"shape"` which is an array giving the shape of the densified array.
-            |       |
-            |       ├── data      # You MUST add a one-dimensional zarr array named "data". 
-            |       |   |         # `data` MAY be chunked as the user desires.
-            |       |   ├── .zarray
-            |       |   |
-            |       |   ├── 0
-            │       │   |   ...
-            │       |   └── n
-            |       |
-            |       ├── indices   # You MUST add a one-dimensional zarr array named "indices".
-            |       |   |         # `indices` MAY be chunked as the user desires.
-            |       |   ├── .zarray  # `indices` MUST be an `int` dtype.
-            |       |   |
-            |       |   ├── 0
-            │       │   |   ...
-            │       |   └── n
-            |       |
-            |       └── indptr    # You MUST add a one-dimensional zarr array named "indptr".
-            |           |         # `indptr` MAY be chunked as the user desires.
-            |           ├── .zarray  # `indptr` MUST be an `int` dtype.
-            |           |
-            |           ├── 0
-            │           |   ...
-            │           └── n
-            |
-            └── uns               # You MAY add a uns containter to store unstructured data.
-                |
+            └── table_1          # A table group holds arrays (called columns) with one or more dimensions, 
+                |                # where the number of rows n MUST be the same across all columns.
                 ├── .zgroup
-                |
-                ├── .zattrs       # `.zattrs` MUST contain `"encoding-type"`, which is set to `"dict"` by AnnData.           
-                │                 # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.1.0"` by AnnData.
-                │
-                ├── group         # You MAY add zarr groups.
-                |   |             # `uns` groups MAY contain groups, dataframes, dense arrays, and sparse arrays.
-                |   |
-                |   ├── .zgroup
-                |   |
-                |   ├── .zattrs   # `.zattrs` MUST contain `"encoding-type"`, which is set to `"csr_matrix"` by AnnData.           
-                |   │             # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.1.0"` by AnnData.
-                |   ...
-                |
-                ├── dataframe_0   # You MAY add dataframe group containers.
-                |   |                 # dataframes MAY be in the `uns` group or in a subgroup.
-                |   │
-                |   ├── .zgroup
-                |   │                     
-                |   ├── .zattrs       # `.zattrs` MUST contain `"_index"`, which is the name of the column in obs to be used as the index.           
-                |   │                 # `.zattrs` MUST contain `"column-order"`, which is a list of the order of the non-_index columns.
-                |   │                 # `.zattrs` MUST contain `"encoding-type"`, which is set to `"dataframe"` by AnnData.
-                |   │                 # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.2.0"` by AnnData.
-                |   │      
-                |   └── col_0         # Each column in the obs table is a 1D zarr array.
-                |       ├── .zarray   # Each columns MUST be chunked the same, but the chunking may be chosen by the user.
-                |       │
-                |       └─ 0
-                |
-                ├── dense_array       # You MAY dense arrays as n n-dimensional zarr arrays.
-                |   │                 # `dense_array` MUST not be a complex type (i.e., MUST be a single type)
-                |   │                 # `dense_array` MAY be chunked as the user desires.
-                |   |                 # `dense array` MAY be in the `uns` group or in a subgroup.
-                |   |
-                |   ├── .zarray
-                |   ├── 0.0
-                |   │   ...
-                |   └── n.m
-                |
-                └── sparse_array  # You MAY add sparse arrays as a zarr group for each sparse array.
-                    |             # sparse arrays MAY be in the `uns` group or in a subgroup.
+                ├── .zattrs      # `.zattrs` MAY contain "row-names", which states which column contains row names.
+                |                # `.zattrs` MUST contain "column-order", which is a list of the order of the columns.
+                |                # `.zattrs` MUST contain "annotated-data", which is specified above.
+                |                
+                |     
+                └── column_1     # The table group MAY hold zero, one, or an arbitrary number of columns.
                     |
-                    ├── .zgroup
+                    ├── .zarray
                     |
-                    ├── .zattrs      # `.zattrs` MUST contain `"encoding-type"`, which is set to `"csr_matrix"` or `"csc_matrix"` for compressed sparse row and compressed sparse column, respectively.           
-                    │                # `.zattrs` MUST contain `"encoding-version"`, which is set to `"0.1.0"` by AnnData.
-                    |                # `.zattrs` MUST contain `"shape"` which is an array giving the shape of the densified array.
-                    |
-                    ├── data         # You MUST add a one-dimensional zarr array named "data". 
-                    |   |            # `data` MAY be chunked as the user desires.
-                    |   ├── .zarray
-                    |   |
-                    |   ├── 0
-                    │   |   ...
-                    |   └── n
-                    |
-                    ├── indices      # You MUST add a one-dimensional zarr array named "indices".
-                    |   |            # `indices` MAY be chunked as the user desires.
-                    |   ├── .zarray  # `indices` MUST be an `int` dtype.
-                    |   |
-                    |   ├── 0
-                    │   |   ...
-                    |   └── n
-                    |
-                    └── indptr       # You MUST add a one-dimensional zarr array named "indptr".
-                        |            # `indptr` MAY be chunked as the user desires.
-                        ├── .zarray  # `indptr` MUST be an `int` dtype.
-                        |
-                        ├── 0
-                        |   ...
-                        └── n
-        
-
+                    ├── 0.0
+                    |   ...
+                    └── n.m
 </pre>
+
 
 High-content screening {#hcs-layout}
 ------------------------------------
@@ -882,8 +686,7 @@ Projects which support reading and/or writing OME-NGFF data include:
 
 </dl>
 
-<img src="https://downloads.openmicroscopy.org/presentations/2020/Dundee/Workshops/NGFF/zarr_diagram/images/zarr-ome-diagram.png"
-    alt="Diagram of related projects"/>
+<img src="https://downloads.openmicroscopy.org/presentations/2020/Dundee/Workshops/NGFF/zarr_diagram/images/zarr-ome-diagram.png" alt="Diagram of related projects"></img>
 
 All implementations prevent an equivalent representation of a dataset which can be downloaded or uploaded freely. An interactive
 version of this diagram is available from the [OME2020 Workshop](https://downloads.openmicroscopy.org/presentations/2020/Dundee/Workshops/NGFF/zarr_diagram/).
@@ -896,7 +699,7 @@ Citing {#citing}
 
 [Next-generation file format (NGFF) specifications for storing bioimaging data in the cloud.](https://ngff.openmicroscopy.org/0.4)
 J. Moore, *et al*. Editors. Open Microscopy Environment Consortium, 8 February 2022.
-This edition of the specification is [https://ngff.openmicroscopy.org/0.4/](https://ngff.openmicroscopy.org/0.4/]).
+This edition of the specification is [https://ngff.openmicroscopy.org/0.4/](https://ngff.openmicroscopy.org/0.4/).
 The latest edition is available at [https://ngff.openmicroscopy.org/latest/](https://ngff.openmicroscopy.org/latest/).
 [(doi:10.5281/zenodo.4282107)](https://doi.org/10.5281/zenodo.4282107)
 
